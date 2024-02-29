@@ -1,6 +1,7 @@
 # Jenson-xlswriter
-php xlswriter插件
-需要安装php_xlswriter扩展
+* php xlswriter插件（Excel大量数据导入导出插件）
+* 需要安装php_xlswriter扩展
+* php版本需要在7.2及以上
 
 ## 安装  
 ```bash
