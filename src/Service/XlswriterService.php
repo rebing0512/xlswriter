@@ -1,6 +1,6 @@
 <?php
 
-namespace Jenson\Xlswriter;
+namespace Jenson\Xlswriter\Service;
 
 use Vtiful\Kernel\Excel;
 use Vtiful\Kernel\Format;
@@ -22,33 +22,33 @@ class XlswriterService
      * @param $type
      * @throws \Exception
      */
-    public function __construct($path = '/xlswriter/viest',$type = 'write',$data = array(),$setting = array())
+    public function __construct($path = '/xlswriter/viest',$type = 'write',)
     {
         $config = [
             'path' => $path #xlsx文件保存路径
         ];
-        $arr = [
-            'read','write'
-        ];
-        if(!in_array($type,$arr)){
-            throw new \Exception('Operate type must be read or write');
-        }
+//        $arr = [
+//            'read','write'
+//        ];
+//        if(!in_array($type,$arr)){
+//            throw new \Exception('Operate type must be read or write');
+//        }
         $this->excel   =  new Excel($config);
-        $this->data    =  $data;
-        $this->setting =  $setting;
+//        $this->data    =  $data;
+//        $this->setting =  $setting;
     }
 
     /**
-     * Excel导出
+     *  Excel导出
      *
      * @param $title
-     * @return void
+     * @param $data
+     * @param $setting
+     * @return string|void
      * @throws \Exception
      */
-    public function export($title)
+    public function export($title,$data,$setting = array())
     {
-        $data = $this->data;
-        $setting = $this->setting;
         if (count($title) == 0 || count($data) == 0) {
             throw new \Exception('暂无可导出数据！');
         }
@@ -90,9 +90,9 @@ class XlswriterService
         if($hasFreezePane){
             $excel->freezePanes($setting['freezePane'][0],$setting['freezePane'][1]);
         }
-        $sheetName  = $setting['sheetName'];
-        $fileName   = $setting['fileName'];
-        $filePath   = $excel->fileName($fileName, $sheetName);
+//        $sheetName  = $setting['sheetName'];
+//        $fileName   = $setting['fileName'];
+//        $filePath   = $excel->fileName($fileName, $sheetName);
         $fileHandle = $excel->getHandle();
         $format1    = new \Vtiful\Kernel\Format($fileHandle);
         $format2    = new \Vtiful\Kernel\Format($fileHandle);
@@ -108,10 +108,13 @@ class XlswriterService
             ->align(Format::FORMAT_ALIGN_CENTER, Format::FORMAT_ALIGN_VERTICAL_CENTER)
             ->border(Format::BORDER_THIN)
             ->toResource();
+        $header = $data[0];
         $headerLen = count($header)-1;
         #header
+        $list = $data;
         array_unshift($list, $header);
         #title
+        $filename = $setting['titleName'];
         $title = array_fill(1, $headerLen, '');
         $title[0] = $filename;
         array_unshift($list, $title);
@@ -152,32 +155,54 @@ class XlswriterService
         }
     }
 
-    public function import($setSkipRows = 0){
-        $config = $this->config;
-        $xlsObj  = new Excel($config);
-        $filePath = $_FILES['file'];
+    /**
+     * @param string $filePath
+     * @param string $filename
+     * @param array $insert_field
+     * @param int $setSkipRows
+     * @return array
+     * @throws \Exception
+     */
+    public function import($filePath,$filename,array $insert_field, $setSkipRows = 0){
+        $xlsObj  = $this->excel;
+        #excel文件
+//        $file = "users_data.xlsx";
         //实例化reader
+        $filePath .= $filename;
         $ext = pathinfo($filePath, PATHINFO_EXTENSION);
         if (!in_array($ext, ['csv', 'xls', 'xlsx'])) {
             throw new \Exception('未知文件格式！');
         }
-        #excel文件
-        $file = "users_data.xlsx";
         //打开xls文件
-        $sheetList = $xlsObj->openFile($file)->sheetList();
+        $sheetList = $xlsObj->openFile($filename)->sheetList();
         //循环读取工作表
         $insert = array();
         foreach ($sheetList as $sheetName) {
             #读取工作表内容
             $xlsObj->openSheet($sheetName);
-            #跳过的行数
-            $xlsObj->setSkipRows($setSkipRows);
-            #游标模式读取数据
-            $name_exist = [];
-            while (($row = $xlsObj->nextRow()) !== NULL) {
-
+            if($setSkipRows > 0) {
+                #跳过的行数
+                $xlsObj->setSkipRows($setSkipRows);
             }
+            $data = $xlsObj->getSheetData();
+            foreach ($data as $key => $value) {
+                $insert[] = [
+                    $insert_field[$key] => $value[$key],
+                    'add_time' => time(),
+                ];
+                if(in_array('upd_time',$insert_field)){
+                    $insert[] = [
+                        'upd_time' => time(),
+                    ];
+                }
+            }
+//            #游标模式读取数据
+//            $name_exist = [];
+//            while (($row = $xlsObj->nextRow()) !== NULL) {
+//
+//            }
         }
+        return $insert;
     }
     /**
      * @var string[]

@@ -5,14 +5,13 @@
     "license": "MIT",
     "authors": [
         {
-            "name": " Wang",
+            "name": "Jenson Wang",
             "email": "rebing0512@outlook.com"
         }
     ],
     "minimum-stability": "dev",
     "require": {
         "guzzlehttp/guzzle": "~6.0",
-        "nesbot/carbon": "^2.72",
         "viest/php-ext-xlswriter-ide-helper": "dev-master"
     },
     "autoload": {
