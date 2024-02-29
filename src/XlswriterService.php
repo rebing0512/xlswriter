@@ -3,6 +3,7 @@
 namespace Jenson\Xlswriter;
 
 use Vtiful\Kernel\Excel;
+use Vtiful\Kernel\Format;
 
 class XlswriterService
 {
@@ -32,8 +33,8 @@ class XlswriterService
         if(!in_array($type,$arr)){
             throw new \Exception('Operate type must be read or write');
         }
-        $this->excel =  new Excel($config);
-        $this->data =  $data;
+        $this->excel   =  new Excel($config);
+        $this->data    =  $data;
         $this->setting =  $setting;
     }
 
@@ -49,34 +50,38 @@ class XlswriterService
         $data = $this->data;
         $setting = $this->setting;
         if (count($title) == 0 || count($data) == 0) {
-            throw new \Exception('The title is not empty!');
+            throw new \Exception('暂无可导出数据！');
         }
         $defaultSetting = [
-            'fileName'=>'excel_export_'.date('Y-m-d').'.xlsx',
+            'fileName'=>'jenson_excel_export_'.date('Y-m-d').'.xlsx',
 
-            'hasSheetTitle'=>true, # 是否有表格的表头
+            'hasSheetTitle'=>true,       #是否有表格的表头
+            'hasSerialNumber'=>true,     #是否有编号
+            'serialNumberTitle'=>"编号",  #是否有编号
 
-            'hasSerialNumber'=>true, # 是否有编号
-            'serialNumberTitle'=>"编号", # 是否有编号
-
-            'hasFreezePane'=>true, # 是否进行冻结分割
-            'freezePane'=>[1,0], # 第几行，第几列
+            'hasFreezePane'=>true,       #是否进行冻结分割
+            'freezePane'=>[1,0],         #第几行，第几列 默认首行
 
             'sheetName'=>'工作表sheet标题',
             'titleName'=>'工作表#sheetName#title标题',
 
-            'defaultRowWidth'=>10,  # 默认行宽
-            'defaultRowHeight'=>30, # 默认行高
+            'defaultRowWidth'=>15,       #默认行宽
+            'defaultRowHeight'=>25,      #默认行高
 
-            'headerStyleSize'=>18,  # 表头的文字大小，加粗
-            'headerRowHeight'=>48,  # 表头的的行高
+            'headerStyleSize'=>18,       #表头的文字大小
+            'headerRowHeight'=>48,       #表头的的行高
+            'headerFont'=>'Calibri',     #表头的的字体
 
-            'titleStyleSize'=>11,  # 标题内容的字体大小，加粗默认11
-            'titleRowHeight'=>30,  # 表头的的行高
-            //'date'=>'', # 日期信息
+            'titleStyleSize'=>14,        #标题内容的字体大小
+            'titleRowHeight'=>30,        #标题的的行高
+            'titleFont'=>'Calibri',      #标题的的字体
 
-            'hasTotalInfo'=>true, #  是否包含合计信息
-            'totalInfo'=>'共计#COUNT#条', #  合计信息内容
+            'contentStyleSize'=>12,      #内容内容的字体大小
+            'contentRowHeight'=>15,      #内容的的行高
+            'contentFont'=>'Calibri',    #内容的的字体
+
+            'hasTotalInfo'=>true,        #是否包含合计信息
+            'totalInfo'=>'共计#COUNT#条', #合计信息内容
         ];
         $setting = array_merge($defaultSetting,$setting);
         $excel = $this->excel;
@@ -85,34 +90,108 @@ class XlswriterService
         if($hasFreezePane){
             $excel->freezePanes($setting['freezePane'][0],$setting['freezePane'][1]);
         }
-        $sheetName =$setting['sheetName'];
-        $fileName =$setting['fileName'];
-        $filePath = $excel->fileName($fileName, $sheetName)
-            ->header(['Item', 'Cost'])
-            ->data([
-                ['Rent', 1000],
-                ['Gas',  100],
-                ['Food', 300],
-                ['Gym',  50],
-            ])
-            ->output();
+        $sheetName  = $setting['sheetName'];
+        $fileName   = $setting['fileName'];
+        $filePath   = $excel->fileName($fileName, $sheetName);
+        $fileHandle = $excel->getHandle();
+        $format1    = new \Vtiful\Kernel\Format($fileHandle);
+        $format2    = new \Vtiful\Kernel\Format($fileHandle);
+        #title style
+        $titleStyle = $format1->fontSize($setting['headerStyleSize'])
+            ->bold()
+            ->font($setting['titleFont'])
+            ->align(Format::FORMAT_ALIGN_CENTER, Format::FORMAT_ALIGN_VERTICAL_CENTER)
+            ->toResource();
+        #global style
+        $globalStyle = $format2->fontSize($setting['contentStyleSize'])
+            ->font($setting['contentFont'])
+            ->align(Format::FORMAT_ALIGN_CENTER, Format::FORMAT_ALIGN_VERTICAL_CENTER)
+            ->border(Format::BORDER_THIN)
+            ->toResource();
+        $headerLen = count($header)-1;
+        #header
+        array_unshift($list, $header);
+        #title
+        $title = array_fill(1, $headerLen, '');
+        $title[0] = $filename;
+        array_unshift($list, $title);
+        $end = static::getStr($headerLen);//strtoupper(chr(65 + $headerLen));
+        #column style 列宽
+        $excel->setColumn("A:{$end}", $setting['defaultRowWidth'], $globalStyle);
+        #title
+        $excel->MergeCells("A1:{$end}1", $filename)->setRow("A1", $setting['defaultRowHeight'], $titleStyle); # setRow 行高
+        #数据
+        $filePath = $excel->data($list)->output();
+        #获取要下载的文件名
+        $file = $filePath;
+        try {
+            #检查文件是否存在
+            if (file_exists($filePath)) {
+                #设置下载头信息
+                header('Content-Description: File Transfer');
+                header('Content-Type: application/octet-stream');
+                header('Content-Disposition: attachment; filename="' . basename($file) . '"');
+                header('Content-Transfer-Encoding: binary');
+                header('Expires: 0');
+                header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
+                header('Pragma: public');
+                header('Content-Length: ' . filesize($file));
+                #读取文件并将其发送到用户
+                ob_clean();
+                flush();
+                readfile($file);
+                #删除文件（节省空间）
+                unlink($filePath);
+                exit;
+            } else {
+                echo '文件不存在';
+            }
+            return 'success';
+        } catch (\Vtiful\Kernel\Exception $e) {
+            return $e->getMessage();
+        }
     }
 
+    public function import($setSkipRows = 0){
+        $config = $this->config;
+        $xlsObj  = new Excel($config);
+        $filePath = $_FILES['file'];
+        //实例化reader
+        $ext = pathinfo($filePath, PATHINFO_EXTENSION);
+        if (!in_array($ext, ['csv', 'xls', 'xlsx'])) {
+            throw new \Exception('未知文件格式！');
+        }
+        #excel文件
+        $file = "users_data.xlsx";
+        //打开xls文件
+        $sheetList = $xlsObj->openFile($file)->sheetList();
+        //循环读取工作表
+        $insert = array();
+        foreach ($sheetList as $sheetName) {
+            #读取工作表内容
+            $xlsObj->openSheet($sheetName);
+            #跳过的行数
+            $xlsObj->setSkipRows($setSkipRows);
+            #游标模式读取数据
+            $name_exist = [];
+            while (($row = $xlsObj->nextRow()) !== NULL) {
+
+            }
+        }
+    }
     /**
-     * 数字续号对应的字母
-     *
      * @var string[]
      */
     private static $keyArr = [
-        1 => 'A',
-        2 => 'B',
-        3 => 'C',
-        4 => 'D',
-        5 => 'E',
-        6 => 'F',
-        7 => 'G',
-        8 => 'H',
-        9 => 'I',
+        1  => 'A',
+        2  => 'B',
+        3  => 'C',
+        4  => 'D',
+        5  => 'E',
+        6  => 'F',
+        7  => 'G',
+        8  => 'H',
+        9  => 'I',
         10 => 'J',
         11 => 'K',
         12 => 'L',
@@ -209,5 +288,4 @@ class XlswriterService
             }
         }
     }
-
 }
