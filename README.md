@@ -18,7 +18,7 @@ composer require jenson0512/xlswriter
     $excel = new \Jenson\Xlswriter\Helper();
     $excel->ExcelImport($filePath,$filename,array $insert_field, $setSkipRows = 0);
     ```
-* 3、文件上传（待完善）
+* 3、文件上传（待测试）
     ```
     $excel = new \Jenson\Xlswriter\Helper();
     $excel->FileUpload($parmas);

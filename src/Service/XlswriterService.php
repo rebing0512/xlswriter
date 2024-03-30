@@ -313,4 +313,60 @@ class XlswriterService
             }
         }
     }
+
+    /**
+     * 文件上传
+     *
+     * @param $file
+     * @param $fileExtra
+     * @param $save_path
+     * @return array
+     */
+    public function fileUpload($file, $fileExtra, $save_path='public/file/'): array
+    {
+        if (!$file){
+            return [
+                'code' => 0,
+                'msg' => 'is not file'
+            ];
+        }
+        #如果之前的文件存在
+        $storage_path = 'static/upload/files';
+        $content = file_get_contents($file['tmp_name']);
+        $file_path = $storage_path.'/'.$fileExtra['file_path'].$fileExtra['file_suffix'];
+        if($fileExtra['file_index']==1 && is_file($file_path)){
+            unlink($file_path);
+        }
+        $dir = dirname($file_path);
+        if (!is_dir($dir))
+        {
+            mkdir($dir, 0755, true);
+        }
+        $fp = fopen($file_path, 'a');#写入方式打开，将文件指针指向文件末尾。如果文件不存在则尝试创建之。
+        flock($fp, LOCK_EX);
+        fwrite($fp, $content);
+        flock($fp, LOCK_UN);
+        #关闭
+        fclose($fp);
+        if (!is_file($file_path)){
+            return [
+                'code' => 0,
+                'msg' => 'file save fail',
+                'dev' => is_file($file_path)
+            ];
+        }
+        if($fileExtra['file_index'] < $fileExtra['file_total']){
+            return [
+                'code' => 1,
+                'upload' => 'success'
+            ];
+        }else{
+            $url_path = '/'.$fileExtra['file_path'].$fileExtra['file_suffix'];
+            #todo:数据入库
+            return [
+                'code' => 1,
+                'path' => $fileExtra['file_path'],
+            ];
+        }
+    }
 }

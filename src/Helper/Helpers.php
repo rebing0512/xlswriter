@@ -37,9 +37,22 @@ class Helpers
         return $xlswriter::import($filePath,$filename,$insert_field,$setSkipRows);
     }
 
-    #上传文件
+    /**
+     * 上传文件
+     *
+     * @param $parmas
+     * @return void
+     */
     public static function FileUpload($parmas){
 
+        $xlswriter = new XlswriterService();
+        $file = $parmas['file'];
+        $fileExtra = [
+            'file_size'   => $parmas['file_size'],
+            'file_suffix' => $parmas['file_suffix'],
+            'file_name'   => $parmas['file_name'],
+        ];
+        return $xlswriter::fileUpload($file, $fileExtra);
     }
 
     /**
