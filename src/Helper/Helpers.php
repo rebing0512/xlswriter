@@ -9,16 +9,17 @@ class Helpers
     /**
      * Excel导出
      *
+     * @param $path
      * @param $title
-     * @param $data
-     * @param $setting
+     * @param array $data
+     * @param array $setting
      * @return void
      * @throws \Exception
      */
-    public static function ExcelExport($title,$data,$setting = array())
+    public static function ExcelExport($path, $title,array $data, array $setting = array())
     {
-        $xlswriter = new XlswriterService();
-        $xlswriter::export($title,$data,$setting);
+        $xlswriter = new XlswriterService($path);
+        $xlswriter->export($title,$data,$setting);
     }
 
     /**
@@ -27,23 +28,24 @@ class Helpers
      * @param $filePath
      * @param $filename
      * @param array $insert_field
-     * @param $setSkipRows
+     * @param int $setSkipRows
      * @return array
      * @throws \Exception
      */
-    public static function ExcelImport($filePath,$filename,array $insert_field, $setSkipRows = 0)
+    public static function ExcelImport($filePath, $filename, array $insert_field, int $setSkipRows = 0): array
     {
         $xlswriter = new XlswriterService();
-        return $xlswriter::import($filePath,$filename,$insert_field,$setSkipRows);
+        return $xlswriter->import($filePath,$filename,$insert_field,$setSkipRows);
     }
 
     /**
      * 上传文件
      *
      * @param $parmas
-     * @return void
+     * @return array
      */
-    public static function FileUpload($parmas){
+    public static function FileUpload($parmas): array
+    {
 
         $xlswriter = new XlswriterService();
         $file = $parmas['file'];
@@ -52,7 +54,7 @@ class Helpers
             'file_suffix' => $parmas['file_suffix'],
             'file_name'   => $parmas['file_name'],
         ];
-        return $xlswriter::fileUpload($file, $fileExtra);
+        return $xlswriter->fileUpload($file, $fileExtra);
     }
 
     /**

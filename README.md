@@ -11,7 +11,7 @@ composer require jenson0512/xlswriter
 * 1、Excel导出
     ```
     $excel = new \Jenson\Xlswriter\Helper();
-    $excel->ExcelExport($title,$data,$setting = array());
+    $excel->ExcelExport($path,$title,$data,$setting = array());
     ```
 * 2、Excel导入
     ```

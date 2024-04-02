@@ -9,33 +9,18 @@ class XlswriterService
 {
     public $excel;
 
-    public $setting = array();
-
-    public $data = array();
-
     /**
      * 初始化
      *
-     * @param $path
-     * @param $data
-     * @param $setting
-     * @param $type
+     * @param string $path
      * @throws \Exception
      */
-    public function __construct($path = '/xlswriter/viest',$type = 'write',)
+    public function __construct(string $path = '')
     {
         $config = [
-            'path' => $path #xlsx文件保存路径
+            'path' => $path #文件保存路径
         ];
-//        $arr = [
-//            'read','write'
-//        ];
-//        if(!in_array($type,$arr)){
-//            throw new \Exception('Operate type must be read or write');
-//        }
-        $this->excel   =  new Excel($config);
-//        $this->data    =  $data;
-//        $this->setting =  $setting;
+        $this->excel  = new Excel($config);
     }
 
     /**
@@ -43,17 +28,17 @@ class XlswriterService
      *
      * @param $title
      * @param $data
-     * @param $setting
+     * @param array $setting
      * @return string|void
      * @throws \Exception
      */
-    public function export($title,$data,$setting = array())
+    public function export($title, $data, array $setting = array())
     {
         if (count($title) == 0 || count($data) == 0) {
             throw new \Exception('暂无可导出数据！');
         }
         $defaultSetting = [
-            'fileName'=>'jenson_excel_export_'.date('Y-m-d').'.xlsx',
+            'fileName'=>'jenson_excel_export_'.date('Y-m-d').'.csv',
 
             'hasSheetTitle'=>true,       #是否有表格的表头
             'hasSerialNumber'=>true,     #是否有编号
@@ -85,14 +70,14 @@ class XlswriterService
         ];
         $setting = array_merge($defaultSetting,$setting);
         $excel = $this->excel;
+        $sheetName  = $setting['sheetName'];
+        $fileName   = $setting['fileName'];
+        $excel->fileName($fileName, $sheetName);
         # 冻结从几行、第几列开始
         $hasFreezePane = $setting['hasFreezePane'];
         if($hasFreezePane){
             $excel->freezePanes($setting['freezePane'][0],$setting['freezePane'][1]);
         }
-//        $sheetName  = $setting['sheetName'];
-//        $fileName   = $setting['fileName'];
-//        $filePath   = $excel->fileName($fileName, $sheetName);
         $fileHandle = $excel->getHandle();
         $format1    = new \Vtiful\Kernel\Format($fileHandle);
         $format2    = new \Vtiful\Kernel\Format($fileHandle);
@@ -108,21 +93,20 @@ class XlswriterService
             ->align(Format::FORMAT_ALIGN_CENTER, Format::FORMAT_ALIGN_VERTICAL_CENTER)
             ->border(Format::BORDER_THIN)
             ->toResource();
-        $header = $data[0];
+        $header = $title;
         $headerLen = count($header)-1;
         #header
         $list = $data;
         array_unshift($list, $header);
-        #title
-        $filename = $setting['titleName'];
         $title = array_fill(1, $headerLen, '');
-        $title[0] = $filename;
+        $titleName   = $setting['titleName'];
+        $title[0] = $titleName;
         array_unshift($list, $title);
         $end = static::getStr($headerLen);//strtoupper(chr(65 + $headerLen));
         #column style 列宽
         $excel->setColumn("A:{$end}", $setting['defaultRowWidth'], $globalStyle);
         #title
-        $excel->MergeCells("A1:{$end}1", $filename)->setRow("A1", $setting['defaultRowHeight'], $titleStyle); # setRow 行高
+        $excel->MergeCells("A1:{$end}1", $titleName)->setRow("A1", $setting['defaultRowHeight'], $titleStyle); # setRow 行高
         #数据
         $filePath = $excel->data($list)->output();
         #获取要下载的文件名
@@ -163,7 +147,7 @@ class XlswriterService
      * @return array
      * @throws \Exception
      */
-    public function import($filePath,$filename,array $insert_field, $setSkipRows = 0){
+    public function import(string $filePath, string $filename, array $insert_field, int $setSkipRows = 0){
         $xlsObj  = $this->excel;
         #excel文件
 //        $file = "users_data.xlsx";
@@ -319,10 +303,10 @@ class XlswriterService
      *
      * @param $file
      * @param $fileExtra
-     * @param $save_path
+     * @param string $save_path
      * @return array
      */
-    public function fileUpload($file, $fileExtra, $save_path='public/file/'): array
+    public function fileUpload($file, $fileExtra, string $save_path='public/file/'): array
     {
         if (!$file){
             return [
