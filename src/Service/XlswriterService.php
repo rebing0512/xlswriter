@@ -303,10 +303,9 @@ class XlswriterService
      *
      * @param $file
      * @param $fileExtra
-     * @param string $save_path
      * @return array
      */
-    public function fileUpload($file, $fileExtra, string $save_path='public/file/'): array
+    public function fileUpload($file, $fileExtra): array
     {
         if (!$file){
             return [
@@ -317,7 +316,7 @@ class XlswriterService
         #如果之前的文件存在
         $storage_path = 'static/upload/files';
         $content = file_get_contents($file['tmp_name']);
-        $file_path = $storage_path.'/'.$fileExtra['file_path'].$fileExtra['file_suffix'];
+        $file_path = $storage_path.'/'.$fileExtra['file_path'].'/'.$fileExtra['file_name'];
         if($fileExtra['file_index']==1 && is_file($file_path)){
             unlink($file_path);
         }
@@ -345,11 +344,11 @@ class XlswriterService
                 'upload' => 'success'
             ];
         }else{
-            $url_path = '/'.$fileExtra['file_path'].$fileExtra['file_suffix'];
+            $url_path = '/'.$fileExtra['file_name'].$fileExtra['file_suffix'];
             #todo:数据入库
             return [
                 'code' => 1,
-                'path' => $fileExtra['file_path'],
+                'path' => $url_path,
             ];
         }
     }

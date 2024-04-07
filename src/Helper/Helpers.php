@@ -43,6 +43,7 @@ class Helpers
      *
      * @param $parmas
      * @return array
+     * @throws \Exception
      */
     public static function FileUpload($parmas): array
     {
@@ -50,11 +51,17 @@ class Helpers
         $xlswriter = new XlswriterService();
         $file = $parmas['file'];
         $fileExtra = [
-            'file_size'   => $parmas['file_size'],
-            'file_suffix' => $parmas['file_suffix'],
-            'file_name'   => $parmas['file_name'],
+            'file_index'  => $file['index']??1,
+            'file_size'   => $file['size'],
+            'file_suffix' => $file['type'],
+            'file_name'   => $file['name'],
+            'file_total'  => $file['file_total']??1,
         ];
-        return $xlswriter->fileUpload($file, $fileExtra);
+        try {
+            return $xlswriter->fileUpload($file, $fileExtra);
+        }Catch(\Exception $e){
+            throw new \Exception($e->getMessage());
+        }
     }
 
     /**
