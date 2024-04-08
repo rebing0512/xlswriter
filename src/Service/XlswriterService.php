@@ -306,16 +306,16 @@ class XlswriterService
      * @param string $save_path
      * @return array
      */
-    public function fileUpload($file, $fileExtra, string $save_path='static/upload/files'): array
+    public function fileUpload($file, $fileExtra, string $save_path='public/file/'): array
     {
         if (!$file){
             return [
                 'code' => 0,
-                'msg' => '文件不存在'
+                'msg' => 'is not file'
             ];
         }
         #如果之前的文件存在
-        $storage_path = $save_path;//'static/upload/files';
+        $storage_path = 'static/upload/files';
         $content = file_get_contents($file['tmp_name']);
         $file_path = $storage_path.'/'.$fileExtra['file_name'];
         if($fileExtra['file_index']==1 && is_file($file_path)){
@@ -326,8 +326,7 @@ class XlswriterService
         {
             mkdir($dir, 0755, true);
         }
-        #写入方式打开，将文件指针指向文件末尾。如果文件不存在则尝试创建之。
-        $fp = fopen($file_path, 'a');
+        $fp = fopen($file_path, 'a');#写入方式打开，将文件指针指向文件末尾。如果文件不存在则尝试创建之。
         flock($fp, LOCK_EX);
         fwrite($fp, $content);
         flock($fp, LOCK_UN);
@@ -336,7 +335,7 @@ class XlswriterService
         if (!is_file($file_path)){
             return [
                 'code' => 0,
-                'msg' => '文件上传失败',
+                'msg' => 'file save fail',
                 'dev' => is_file($file_path)
             ];
         }
@@ -346,11 +345,10 @@ class XlswriterService
                 'upload' => 'success'
             ];
         }else{
-            $url_path = '/'.$fileExtra['file_name'].$fileExtra['file_suffix'];
             #todo:数据入库
             return [
                 'code' => 1,
-                'path' => $url_path,
+                'path' => $file_path,
             ];
         }
     }
