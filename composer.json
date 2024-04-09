@@ -12,6 +12,7 @@
     "minimum-stability": "dev",
     "require": {
         "php": ">=7.2.0",
+        "catfan/medoo": "^2.1",
         "viest/php-ext-xlswriter-ide-helper": "dev-master"
     },
     "autoload": {
