@@ -33,10 +33,10 @@ class Helpers
      * @return mixed
      * @throws \Exception
      */
-    public static function ExcelImport($tale,$filePath, $filename, array $insert_field, int $setSkipRows = 0)
+    public static function ExcelImport($table,$filePath, $filename, array $insert_field, int $setSkipRows = 0)
     {
         $xlswriter = new XlswriterService($filePath);
-        return $xlswriter->import($tale,$filePath,$filename,$insert_field,$setSkipRows);
+        return $xlswriter->import($table,$filePath,$filename,$insert_field,$setSkipRows);
     }
 
     /**

@@ -142,7 +142,7 @@ class XlswriterService
     /**
      * Excel导入
      *
-     * @param string $tale
+     * @param string $table
      * @param string $filePath
      * @param string $filename
      * @param array $insert_field
@@ -150,7 +150,7 @@ class XlswriterService
      * @return mixed
      * @throws \Exception
      */
-    public function import(string $tale,string $filePath, string $filename, array $insert_field, int $setSkipRows = 0){
+    public function import(string $table,string $filePath, string $filename, array $insert_field, int $setSkipRows = 0){
         $xlsObj  = $this->excel;
         //实例化reader
         $filePath .= $filename;
@@ -173,27 +173,15 @@ class XlswriterService
             foreach ($data as $index=>$values) {
                 foreach($values as $key=>$value) {
                     $insert[$index][$insert_field[$key]] = $value;
-                    if (in_array('add_time', $insert_field)) {
-                        $insert[$index][] = [
-                            'add_time' => time(),
-                        ];
-                    }
-                    if (in_array('upd_time', $insert_field)) {
-                        $insert[$index][] = [
-                            'upd_time' => time(),
-                        ];
-                    }
                 }
             }
             if($insert){
-                $user = new \Models\Users();
-//                $insert = array_chunk($insert, 1000);
-//                foreach ($insert as $k => $v){
-                $num  += $user->insertAll($insert);
-//                }
+                $DB = new \Jenson\Xlswriter\Helper\DB();
+                $DB = $DB->database;
+                $DB->insert($table,$insert);
             }
         }
-        return $num;
+        return count($insert);
     }
     /**
      * @var string[]
