@@ -25,17 +25,18 @@ class Helpers
     /**
      * Excel导入
      *
+     * @param string $tale
      * @param $filePath
      * @param $filename
      * @param array $insert_field
      * @param int $setSkipRows
-     * @return array
+     * @return mixed
      * @throws \Exception
      */
-    public static function ExcelImport($filePath, $filename, array $insert_field, int $setSkipRows = 0): array
+    public static function ExcelImport($tale,$filePath, $filename, array $insert_field, int $setSkipRows = 0)
     {
-        $xlswriter = new XlswriterService();
-        return $xlswriter->import($filePath,$filename,$insert_field,$setSkipRows);
+        $xlswriter = new XlswriterService($filePath);
+        return $xlswriter->import($tale,$filePath,$filename,$insert_field,$setSkipRows);
     }
 
     /**

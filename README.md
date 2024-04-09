@@ -16,7 +16,7 @@ composer require jenson0512/xlswriter
 * 2、Excel导入
     ```
     $excel = new \Jenson\Xlswriter\Helper();
-    $excel->ExcelImport($filePath,$filename,array $insert_field, $setSkipRows = 0);
+    $excel->ExcelImport($table,$filePath,$filename,array $insert_field, $setSkipRows = 0);
     ```
 * 3、文件上传
     ```

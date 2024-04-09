@@ -140,17 +140,18 @@ class XlswriterService
     }
 
     /**
+     * Excel导入
+     *
+     * @param string $tale
      * @param string $filePath
      * @param string $filename
      * @param array $insert_field
      * @param int $setSkipRows
-     * @return array
+     * @return mixed
      * @throws \Exception
      */
-    public function import(string $filePath, string $filename, array $insert_field, int $setSkipRows = 0){
+    public function import(string $tale,string $filePath, string $filename, array $insert_field, int $setSkipRows = 0){
         $xlsObj  = $this->excel;
-        #excel文件
-//        $file = "users_data.xlsx";
         //实例化reader
         $filePath .= $filename;
         $ext = pathinfo($filePath, PATHINFO_EXTENSION);
@@ -169,24 +170,30 @@ class XlswriterService
                 $xlsObj->setSkipRows($setSkipRows);
             }
             $data = $xlsObj->getSheetData();
-            foreach ($data as $key => $value) {
-                $insert[] = [
-                    $insert_field[$key] => $value[$key],
-                    'add_time' => time(),
-                ];
-                if(in_array('upd_time',$insert_field)){
-                    $insert[] = [
-                        'upd_time' => time(),
-                    ];
+            foreach ($data as $index=>$values) {
+                foreach($values as $key=>$value) {
+                    $insert[$index][$insert_field[$key]] = $value;
+                    if (in_array('add_time', $insert_field)) {
+                        $insert[$index][] = [
+                            'add_time' => time(),
+                        ];
+                    }
+                    if (in_array('upd_time', $insert_field)) {
+                        $insert[$index][] = [
+                            'upd_time' => time(),
+                        ];
+                    }
                 }
             }
-//            #游标模式读取数据
-//            $name_exist = [];
-//            while (($row = $xlsObj->nextRow()) !== NULL) {
-//
-//            }
+            if($insert){
+                $user = new \Models\Users();
+//                $insert = array_chunk($insert, 1000);
+//                foreach ($insert as $k => $v){
+                $num  += $user->insertAll($insert);
+//                }
+            }
         }
-        return $insert;
+        return $num;
     }
     /**
      * @var string[]
