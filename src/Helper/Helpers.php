@@ -47,15 +47,15 @@ class Helpers
      */
     public static function FileUpload($parmas): array
     {
-
         $xlswriter = new XlswriterService();
         $file = $parmas['file'];
         $fileExtra = [
-            'file_size'   => $parmas['file_size'],
-            'file_suffix' => $parmas['file_suffix'],
-            'file_name'   => $parmas['file_name'],
+            'file_size'   => $file['size'],
+            'file_suffix' => $file['type'],
+            'file_name'   => $file['name'],
         ];
-        return $xlswriter->fileUpload($file, $fileExtra);
+        $save_path=$parmas['save_path']??'static/upload/files';
+        return $xlswriter->fileUpload($file, $fileExtra,$save_path);
     }
 
     /**
