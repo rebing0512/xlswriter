@@ -301,7 +301,7 @@ class XlswriterService
      * @param string $save_path
      * @return array
      */
-    public function fileUpload($file, $fileExtra, string $save_path='public/file/'): array
+    public function fileUpload($file, $fileExtra, string $save_path='static/upload/files'): array
     {
         if (!$file){
             return [
@@ -310,7 +310,7 @@ class XlswriterService
             ];
         }
         #如果之前的文件存在
-        $storage_path = 'static/upload/files';
+        $storage_path = $save_path;
         $content = file_get_contents($file['tmp_name']);
         $file_path = $storage_path.'/'.$fileExtra['file_name'];
         if($fileExtra['file_index']==1 && is_file($file_path)){
